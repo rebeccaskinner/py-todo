@@ -20,6 +20,12 @@ class TestTodoItem(unittest.TestCase):
         summary1 = "test summary"
         item = todo.TodoItem(summary1)
         self.assertEqual(summary1, item.description())
+    def test_set_summary(self):
+        summary1 = "test summary 1"
+        summary2 = "test summary 2"
+        item = todo.TodoItem(summary1)
+        item.set_summary(summary2)
+        self.assertEqual(summary2, item.description())
     def test_new_item_status_is_todo(self):
         item = todo.TodoItem("summary1")
         self.assertEqual(todo.TodoStatus.TODO, item.status())
@@ -65,6 +71,14 @@ class TestTodoList(unittest.TestCase):
         summary = "summary1"
         id = list.add_item(summary)
         self.assertEqual(summary, list.lookup(id).description())
+    def test_remove_item_when_item_exists(self):
+        list = todo.List()
+        idx = list.add_item("summary")
+        list.remove_item(idx)
+        self.assertEqual(None, list.lookup(idx))
+    def test_remove_item_when_item_not_exists(self):
+        list = todo.List()
+        list.remove_item(999)
     def test_list_size_increases_when_new_item_added(self):
         list = todo.List()
         list.add_item("summary")
@@ -92,6 +106,9 @@ class TestTodoList(unittest.TestCase):
         self.assertEqual(1, list.total_count())
         list.add_item("summary")
         self.assertEqual(2, list.total_count())
+    def test_returns_none_when_missing_element(self):
+        list = todo.List()
+        self.assertEqual(None, list.lookup(999))
 
 if __name__ == '__main__':
     unittest.main()

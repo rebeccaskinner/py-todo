@@ -41,6 +41,8 @@ class TodoItem:
         self._status = TodoStatus.TODO
     def status(self):
         return self._status
+    def set_summary(self, summary):
+        self._summary = summary
     def is_complete(self):
         return self._status == TodoStatus.DONE
     def set_status(self, status):
@@ -66,12 +68,17 @@ class List:
         self._idx = 0
     def total_count(self):
         return len(self._list)
+    def remove_item(self, idx):
+        if idx in self._list:
+            del self._list[idx]
     def add_item(self, summary):
         idx = self._idx
         self._list[idx] = TodoItem(summary)
         self._idx = self._idx + 1
         return idx
     def lookup(self, idx):
+        if idx not in self._list:
+            return None
         return self._list[idx]
     def items_by_state(self, state):
         found = {}
@@ -96,8 +103,13 @@ class List:
         return items
 
 app = Flask(__name__)
-
 list = List()
+
+def convertDict(item_map):
+    result_map = {}
+    for k, v in item_map.items():
+        result_map[k] = v.json_dict()
+    return result_map
 
 @app.route('/')
 def home():
@@ -115,19 +127,19 @@ def items():
 
 @app.route("/open")
 def open_items():
-    return (json.dumps(list.open_items()), {"Content-Type": "application/json"})
+    return (json.dumps(convertDict(list.open_items())), {"Content-Type": "application/json"})
 
 @app.route("/complete")
 def complete_items():
-    return (json.dumps(list.complete_items()), {"Content-Type": "application/json"})
+    return (json.dumps(convertDict(list.complete_items())), {"Content-Type": "application/json"})
 
 @app.route("/abandoned")
 def abandoned_items():
-    return (json.dumps(list.abandoned_items()), {"Content-Type": "application/json"})
+    return (json.dumps(convertDict(list.abandoned_items())), {"Content-Type": "application/json"})
 
 @app.route("/pending")
 def pending_items():
-    return (json.dumps(list.todo_items()), {"Content-Type": "application/json"})
+    return (json.dumps(convertDict(list.todo_items())), {"Content-Type": "application/json"})
 
 @app.route("/add", methods=['POST'])
 def add():
@@ -140,7 +152,38 @@ def add():
         if status is None:
             return ("invalid status", 400, {})
         f = lambda x: x.set_status(status)
-
     idx = list.add_item(data["summary"])
     f(list.lookup(idx))
     return ("{}".format(idx), {"Content-Type": "application/plaintext"})
+
+@app.route("/<int:item_id>", methods=['GET','PUT','DELETE'])
+def item(item_id):
+    if request.method == 'GET':
+        return get_item(item_id)
+    elif request.method == 'PUT':
+        return update_item(item_id,request.get_json(force = True))
+    elif request.method == 'DELETE':
+        return remove_item(item_id)
+
+def get_item(item_id):
+    item = list.lookup(item_id)
+    if item is None:
+        return ("no such item", 404, {})
+    return (json.dumps(item.json_dict()), {"Content-Type": "application/json"})
+
+def update_item(item_id, item_map):
+    item = list.lookup(item_id)
+    if item is None:
+        return ("no such item", 404, {})
+    if "status" in item_map:
+        parsed = TodoStatus.parse(item_map["status"])
+        if parsed is None:
+            return ("invalid status", 400, {})
+        item.set_status(parsed)
+    if "summary" in item_map:
+        item.set_summary(item_map["summary"])
+    return (json.dumps(item.json_dict()), {"Content-Type": "application/json"})
+
+def remove_item(item_id):
+    list.remove_item(item_id)
+    return ("",200,{})

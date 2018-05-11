@@ -1,0 +1,107 @@
+{
+  "description": "This document describes the todolist API.",
+  "endpoints": {
+    "api": {
+      "get": {
+        "returns": "json",
+        "description": "returns this json document"
+      }
+    },
+    "items": {
+      "get": {
+        "returns": "ticket-map",
+        "description": "returns a list of all todo list items"
+      }
+    },
+    "pending": {
+      "get": {
+        "returns": "ticket-map",
+        "description": "returns a list of all pending todo list items"
+      }
+    },
+    "open": {
+      "get": {
+        "returns": "ticket-map",
+        "description": "returns a list of all open todo list items"
+      }
+    },
+    "complete": {
+      "get": {
+        "returns": "ticket-map",
+        "description": "returns a list of all complete todo list items"
+      }
+    },
+    "abandoned": {
+      "get": {
+        "returns": "ticket-map",
+        "description": "returns a list of all abandoned todo list items"
+      }
+    },
+    "add": {
+      "post": {
+        "accepts": "ticket-json",
+        "returns": "ticket-id",
+        "description": "adds a new todo list item"
+      }
+    },
+    "id": {
+      "get": {
+        "returns": "ticket-json",
+        "description": "returns information about the given ticket"
+      },
+      "delete": {
+        "description": "deletes a given ticket"
+      },
+      "put": {
+        "accepts": "ticket-json",
+        "returns": "ticket-json",
+        "description": "updates ticket information"
+      }
+    },
+    "id/status": {
+      "put": {
+        "accepts": "status-string",
+        "returns": "ticket-json",
+        "description": "sets the status of a ticket by ID"
+      }
+    }
+  },
+  "types": {
+    "ticket-json": {
+      "description": "json document describing a single ticket",
+      "type": "object",
+      "fields": {
+        "status": {
+          "description": "the status of a ticket",
+          "type": "status-string",
+          "required": true
+        },
+        "summary": {
+          "description": "human readable description of the ticket",
+          "type": "string",
+          "required": false
+        }
+      }
+    },
+    "ticket-id": {
+      "description": "numeric id representing a ticket",
+      "type": "number"
+    },
+    "ticket-map": {
+      "description": "map of ticket IDs to values",
+      "type": "object",
+      "key-type": "ticket-id",
+      "value-type": "ticket-json"
+    },
+    "status-string": {
+      "description": "string enumeration of ticket status",
+      "type": "string",
+      "values": [
+        "todo",
+        "in-progress",
+        "abandoned",
+        "done"
+      ]
+    }
+  }
+}

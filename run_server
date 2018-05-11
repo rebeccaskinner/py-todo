@@ -1,0 +1,3 @@
+#!/bin/bash
+
+FLASK_APP=src/todo_server.py flask run
